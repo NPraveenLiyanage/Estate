@@ -1,23 +1,29 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {Link, useNavigate} from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice';
 
 export default function Signin() {
-  const [formData, setFormData] = useState({})//create formData object and change object using setFormData function
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({})  //create formData object and change object using setFormData function
+  //const [error, setError] = useState(null);
+  //const [loading, setLoading] = useState(false);
+  const {loading, error} = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const handlechange = (e) => {
     setFormData({
-      ...formData,//spread operator
+      ...formData,  //spread operator
       [e.target.id]:e.target.value,
     });
   };
 
-  const handleSubmit = async (e) => {//prevent reloading the page
+  const handleSubmit = async (e) => {    //prevent reloading the page
     e.preventDefault();
     try{
-      setLoading(true);
-      const res = await fetch('/backend/auth/signin',//need Proxy when we we call another port that not specified(eg:call 5173 not 3000)
+      //setLoading(true);
+      dispatch(signInStart());
+      const res = await fetch('/backend/auth/signin',     //need Proxy when we we call another port that not specified(eg:call 5173 not 3000)
       {
         method:'POST',
         headers:{
@@ -28,16 +34,19 @@ export default function Signin() {
       );
       const data = await res.json();
       if(data.success == false){
-        setError(data.message);
-        setLoading(false);
+        //setError(data.message);
+        //setLoading(false);
+        dispatch(signInFailure(data.message));
         return;
       }
-      setLoading(false);
-      setError(null);
-      navigate('/');//if there no error navigate to home page
+      //setLoading(false);
+      //setError(null);
+      dispatch(signInSuccess(data));
+      navigate('/');   //if there no error navigate to home page
     }catch(error){
-      setLoading(false);
-      setError(error.message);
+      //setLoading(false);
+      //setError(error.message);
+      dispatch(signInFailure(error.message));
     }
   };//look vite.config.js for proxy
 
