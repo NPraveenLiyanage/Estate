@@ -5,7 +5,7 @@ import { initializeApp } from "firebase/app";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey:import.meta.env.VITE_FIREBASE_API , //securing the api key if we publish this
+  apiKey:import.meta.env.VITE_FIREBASE_API ,   //securing the api key if we publish this
   authDomain: "estate-36bf8.firebaseapp.com",
   projectId: "estate-36bf8",
   storageBucket: "estate-36bf8.firebasestorage.app",
