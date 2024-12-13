@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
 import { current } from '@reduxjs/toolkit';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function CreateListing() {
   const navigate = useNavigate();
+  const params = useParams();
   const { currentUser } = useSelector(state => state.user);
   const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({           //default values
@@ -27,7 +28,20 @@ export default function CreateListing() {
   const [uploading, setUploading] = useState(false); // loading button effect
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-  console.log(formData);
+  
+  useEffect(() => {
+    const fetchListing = async () => {
+      const listingId = params.listingId;
+      const res = await fetch(`/backend/listing/get/${listingId}`);
+      const data = await res.json();
+      if(data.success === false){
+        console.log(data.message); 
+        return;                                                                                                                                          
+      }
+      setFormData(data);
+    }
+    fetchListing();
+  }, []);
 
   const handleImageSubmit = async(e) =>{
       if(files.length > 0 && files.length + formData.imageUrls.length < 7){
@@ -117,9 +131,9 @@ export default function CreateListing() {
       //if(formData.imageUrls.length < 1) return setError('You must upload at least one image');
       if(+formData.regularPrice < +formData.discountPrice) return setError('Discount price must be lower than regular price');
       // + use beacuse sometime those prices can be number or string + make sure it is number
-        setLoading(true);
+        //setLoading(true);
       setError(false);
-      const res = await fetch('backend/listing/create',{
+      const res = await fetch(`/backend/listing/update/${params.listingId}`,{
         method: 'POST',
         headers: {
           'Content-Type' : 'application/json',
@@ -143,7 +157,7 @@ export default function CreateListing() {
 
   return (
     <main className='p-3 max-w-4xl mx-auto'>
-      <h1 className='text-3xl font-semibold text-center my-7'>CreateListing</h1>
+      <h1 className='text-3xl font-semibold text-center my-7'>Update Listing</h1>
       
       <form onSubmit={handleSubmit} className='flex flex-col sm:flex-row gap-6'>
         <div className='flex flex-col flex-1 gap-4'>
@@ -234,7 +248,7 @@ export default function CreateListing() {
           </div>
           <p className='text-red-700'>{imageUploadError && imageUploadError}</p>
           <button disabled={loading ||uploading} className='p-3 bg-slate-700 text-white rounded-lg uppercase 
-          hover:opacity-95 disabled:opacity-80'>{loading ? 'Creating...' : 'Create'}</button>
+          hover:opacity-95 disabled:opacity-80'>{loading ? 'Updating...' : 'Update listing'}</button>
           {error && <p className='text-red-700'>{error}</p>}
         </div>
       </form>
